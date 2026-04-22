@@ -16,7 +16,7 @@ export default function Login() {
     setError(''); 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/'); 
+      navigate('/marketplace', { replace: true });
     } catch (err) {
       setError('Credenciales incorrectas. Verifica tu email y contraseña.');
     }
