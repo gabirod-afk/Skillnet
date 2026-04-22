@@ -49,7 +49,7 @@ export default function Footer() {
             <ul className="space-y-4 text-sm font-medium text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">Soporte</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Preguntas Frecuentes</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Términos y Condiciones</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Términos de la plataforma</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Libro de Reclamaciones</a></li>
             </ul>
           </div>
