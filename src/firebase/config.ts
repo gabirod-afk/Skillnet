@@ -2,18 +2,18 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Estos datos los sacas de la consola de Firebase > Configuración del proyecto
 const firebaseConfig = {
-  apiKey: "AIzaSyB-URCQmBhbpf4tjP4tPr0P71Oecx3veMA",
-  authDomain: "skillnet-8533c.firebaseapp.com",
-  databaseURL: "https://skillnet-8533c-default-rtdb.firebaseio.com",
-  projectId: "skillnet-8533c",
-  storageBucket: "skillnet-8533c.firebasestorage.app",
-  messagingSenderId: "241284136543",
-  appId: "1:241284136543:web:529fc05e92ae249a2865ea",
-  measurementId: "G-6SR30QE50D"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
-export const db = getFirestore(app); 
+export const db = getFirestore(app);
+
+export default app;
