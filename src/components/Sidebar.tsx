@@ -6,10 +6,15 @@ import {
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext'; 
 
 export default function Sidebar() {
   const location = useLocation();
   const path = location.pathname;
+  const { userData } = useAuth(); 
+
+  // Verificamos si el usuario tiene permiso de creador
+  const isCreator = userData?.role === 'afiliado' || userData?.role === 'infoproductor';
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     'productos': false,
@@ -63,49 +68,50 @@ export default function Sidebar() {
       
       <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-2">
         
-        {/* Menú: Mis Infoproductos */}
-        <div>
-          <button 
-            onClick={() => toggleMenu('productos')} 
-            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[#1A1A1A] transition-colors group"
-          >
-            <div className="flex items-center gap-3">
-              <Briefcase className={`w-5 h-5 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-400 group-hover:text-[#FFC847]'}`} />
-              <span className={`font-semibold text-sm ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-white'}`}>
-                Mis Infoproductos
-              </span>
-            </div>
-            {openMenus['productos'] ? 
-              <ChevronUp className={`w-4 h-4 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-500'}`} /> : 
-              <ChevronDown className={`w-4 h-4 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-500'}`} />
-            }
-          </button>
-          
-          {openMenus['productos'] && (
-            <div className="flex flex-col gap-1 pl-11 pr-3 py-2 relative">
-              {/* Barra indicadora amarilla (se mueve según la ruta activa) */}
-              <div className="absolute left-6 top-3 bottom-2 w-0.5 bg-gray-800">
-                {isActive('/crear-producto') && <div className="absolute top-0 left-0 w-full h-6 bg-[#FFC847] rounded-full"></div>}
-                {isActive('/mis-productos') && <div className="absolute top-[32px] left-0 w-full h-6 bg-[#FFC847] rounded-full"></div>}
+        {/* Menú: Mis Infoproductos (SOLO PARA CREADORES) */}
+        {isCreator && (
+          <div>
+            <button 
+              onClick={() => toggleMenu('productos')} 
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[#1A1A1A] transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <Briefcase className={`w-5 h-5 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-400 group-hover:text-[#FFC847]'}`} />
+                <span className={`font-semibold text-sm ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-white'}`}>
+                  Mis Infoproductos
+                </span>
               </div>
-              
-              <Link 
-                to="/crear-producto" 
-                className={`text-sm py-1.5 block transition-colors ${isActive('/crear-producto') ? 'text-white font-bold' : 'text-gray-400 hover:text-white'}`}
-              >
-                Crear un nuevo Infoproducto
-              </Link>
-              <Link 
-                to="/mis-productos" 
-                className={`text-sm py-1.5 block transition-colors ${isActive('/mis-productos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white'}`}
-              >
-                Ver todos mis Infoproductos
-              </Link>
-            </div>
-          )}
-        </div>
+              {openMenus['productos'] ? 
+                <ChevronUp className={`w-4 h-4 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-500'}`} /> : 
+                <ChevronDown className={`w-4 h-4 ${isGroupActive('productos') ? 'text-[#FFC847]' : 'text-gray-500'}`} />
+              }
+            </button>
+            
+            {openMenus['productos'] && (
+              <div className="flex flex-col gap-1 pl-11 pr-3 py-2 relative">
+                <div className="absolute left-6 top-3 bottom-2 w-0.5 bg-gray-800">
+                  {isActive('/crear-producto') && <div className="absolute top-0 left-0 w-full h-6 bg-[#FFC847] rounded-full"></div>}
+                  {isActive('/mis-productos') && <div className="absolute top-[32px] left-0 w-full h-6 bg-[#FFC847] rounded-full"></div>}
+                </div>
+                
+                <Link 
+                  to="/crear-producto" 
+                  className={`text-sm py-1.5 block transition-colors ${isActive('/crear-producto') ? 'text-white font-bold' : 'text-gray-400 hover:text-white'}`}
+                >
+                  Crear un nuevo Infoproducto
+                </Link>
+                <Link 
+                  to="/mis-productos" 
+                  className={`text-sm py-1.5 block transition-colors ${isActive('/mis-productos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white'}`}
+                >
+                  Ver todos mis Infoproductos
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Menú: Mi perfil */}
+        {/* Menú: Mi perfil (VISIBLE PARA TODOS) */}
         <div>
           <button 
             onClick={() => toggleMenu('perfil')} 
@@ -125,7 +131,6 @@ export default function Sidebar() {
           
           {openMenus['perfil'] && (
             <div className="flex flex-col gap-1 pl-11 pr-3 py-2 relative">
-              {/* Barra indicadora amarilla */}
               <div className="absolute left-6 top-3 bottom-2 w-0.5 bg-gray-800">
                 {isActive('/profile') && <div className="absolute top-0 left-0 w-full h-6 bg-[#FFC847] rounded-full"></div>}
               </div>

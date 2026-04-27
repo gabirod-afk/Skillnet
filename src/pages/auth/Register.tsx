@@ -41,8 +41,7 @@ export default function Register() {
         createdAt: new Date()
       });
 
-      // 3. Redirige al inicio tras un registro exitoso
-      navigate('/');
+      navigate('/marketplace');
     } catch (err) {
       setError('Hubo un error al crear la cuenta. Intenta de nuevo.');
     }

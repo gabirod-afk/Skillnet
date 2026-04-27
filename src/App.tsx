@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // Layouts y Protecciones
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Páginas Públicas
@@ -31,46 +32,41 @@ const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-
             {/* ==============================
-                RUTAS PRIVADAS (Requieren Login)
+                RUTAS PRIVADAS GENERALES (Para todos los logueados)
             ============================== */}
-            <Route
-              path="/marketplace"
-              element={
-                <ProtectedRoute>
-                  <Marketplace />
-                </ProtectedRoute>
-              }
+            <Route 
+              path="/marketplace" 
+              element={<ProtectedRoute><Marketplace /></ProtectedRoute>} 
             />
             
             <Route 
               path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <ProfileSettings />
-                </ProtectedRoute>
-              } 
+              element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} 
             />
             
+            {/* ==============================
+                RUTAS DE CREADOR (Solo Afiliados e Infoproductores)
+            ============================== */}
             <Route 
               path="/crear-producto" 
               element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor']}>
                   <CreateProductFlow />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               } 
             />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
             <Route
               path="/mis-productos"
               element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor']}>
                   <MyProducts />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               }
             />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
 
           </Routes>
         </MainLayout>
