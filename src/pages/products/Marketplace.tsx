@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
-/**
- * Vista marketplace (solo presentación).
- * Navbar y Footer: `MainLayout` ya renderiza `src/components/Navbar` y `Footer`.
- */
 
 function formatMoney(value: string | number, _currency?: string) {
   const n = Number(value) || 0;
@@ -21,7 +19,7 @@ interface Professor {
 }
 
 interface Course {
-  id: number | string;
+  id: string; // Cambiado a string porque los IDs de Firebase son strings
   title: string;
   slug: string;
   price?: number | string;
@@ -46,132 +44,6 @@ interface Course {
   description?: string;
   currency?: string;
 }
-
-const MOCK_COURSES: Course[] = [
-  {
-    id: 1,
-    title: 'Auditor Líder ISO 39001 — Seguridad vial',
-    slug: 'curso-demo-1',
-    price: 1299,
-    original_price: 1899,
-    is_on_sale: true,
-    category: 'Gestión y Operaciones',
-    average_rating: 4.8,
-    enrollment_count: 420,
-    status: 'published',
-    reviews_count: 128,
-    ally: 'intercert',
-    image_file_url:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400&auto=format&fit=crop',
-    video_file_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-    professor: { first_name: 'María', last_name: 'García', profile_picture_url: undefined },
-    short_description: 'Transformación profesional e impacto social con estándares internacionales.',
-  },
-  {
-    id: 2,
-    title: 'Finanzas para emprendedores',
-    slug: 'curso-demo-2',
-    price: 899,
-    category: 'Finanzas y Negocios',
-    rating_average: 4.6,
-    enrollment_count: 310,
-    status: 'published',
-    reviews_count: 90,
-    image_url:
-      'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=400&auto=format&fit=crop',
-    video_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-    professor: { first_name: 'Carlos', last_name: 'Ruiz' },
-  },
-  {
-    id: 3,
-    title: 'Marketing digital integral',
-    slug: 'curso-demo-3',
-    price: 749,
-    category: 'Marketing y Ventas',
-    average_rating: 4.9,
-    enrollment_count: 512,
-    status: 'published',
-    rating_count: 200,
-    thumbnail_url:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=400&auto=format&fit=crop',
-    video_file_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-    author: { name: 'INTERCERT ACADEMY' },
-  },
-  {
-    id: 4,
-    title: 'Python para análisis de datos',
-    slug: 'curso-demo-4',
-    price: 1099,
-    is_on_sale: false,
-    category: 'Tecnología y Data',
-    average_rating: 4.7,
-    enrollment_count: 880,
-    status: 'published',
-    reviews_count: 240,
-    image_file_url:
-      'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400&auto=format&fit=crop',
-    video_file_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-    professor: { username: 'DataLab' },
-  },
-  {
-    id: 5,
-    title: 'Liderazgo y equipos remotos',
-    slug: 'curso-demo-5',
-    price: 649,
-    category: 'Desarrollo Profesional',
-    rating_average: 4.5,
-    enrollment_count: 210,
-    status: 'published',
-    reviews_count: 55,
-    image_url:
-      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    id: 6,
-    title: 'UX/UI desde cero',
-    slug: 'curso-demo-6',
-    price: 999,
-    original_price: 1200,
-    is_on_sale: true,
-    category: 'Creatividad y Diseño',
-    average_rating: 4.95,
-    enrollment_count: 340,
-    status: 'published',
-    reviews_count: 180,
-    thumbnail_url:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=400&auto=format&fit=crop',
-    video_file_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-    professor: { first_name: 'Ana', last_name: 'López' },
-  },
-  {
-    id: 7,
-    title: 'Excel avanzado para negocios',
-    slug: 'curso-demo-7',
-    price: 499,
-    category: 'Finanzas y Negocios',
-    average_rating: 4.4,
-    enrollment_count: 1200,
-    status: 'published',
-    reviews_count: 400,
-    image_file_url:
-      'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    id: 8,
-    title: 'Branding y storytelling',
-    slug: 'curso-demo-8',
-    price: 859,
-    category: 'Marketing y Ventas',
-    average_rating: 4.85,
-    enrollment_count: 190,
-    status: 'published',
-    reviews_count: 72,
-    ally: 'intercert',
-    thumbnail_url:
-      'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=400&auto=format&fit=crop',
-    video_file_url: 'https://dnnuvgwtrg1xr.cloudfront.net/assets/videos/home-lerny.mp4',
-  },
-];
 
 const OFFER_ITEMS = [
   { title: 'Cursos', img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400&auto=format&fit=crop' },
@@ -634,7 +506,7 @@ function CourseCard({ course, isAffiliate = false, onOpenPreview }: CourseCardPr
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px', color: '#666', fontSize: '11px' }}>
             <i className="ri-user-line" style={{ fontSize: '12px' }} />
-            <span style={{ fontWeight: '600' }}>{course.enrollment_count ?? '180'}</span>
+            <span style={{ fontWeight: '600' }}>{course.enrollment_count ?? '0'}</span>
           </div>
 
           <div style={{ height: '1px', background: '#EEE', marginBottom: '10px' }} />
@@ -837,23 +709,38 @@ function CourseCarouselSection({
 }
 
 export default function Marketplace() {
-  const published = MOCK_COURSES.filter((c) => c.status === 'published');
-  const topRated = [...published]
-    .filter((c) => (c.average_rating || c.rating_average || 0) >= 4.5)
-    .sort((a, b) => (b.average_rating || b.rating_average || 0) - (a.average_rating || a.rating_average || 0))
-    .slice(0, 8);
-  const bestSelling = [...published]
-    .sort((a, b) => (b.reviews_count || b.rating_count || 0) - (a.reviews_count || a.rating_count || 0))
-    .slice(0, 8);
-  const certified = published.filter((c) => c.ally === 'intercert').slice(0, 10);
-  const trending = [...published].sort(() => 0.5 - Math.random()).slice(0, 10);
-
+  // ESTADOS PARA DATOS REALES DE FIREBASE
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [searchQuery] = useState('');
   const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // FETCH A FIREBASE
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "courses"));
+        const coursesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Course[];
+        
+        setCourses(coursesData);
+      } catch (error) {
+        console.error("Error al cargar los cursos desde Firebase:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  // Lógica de carrusel de banner superior y resize
   useEffect(() => {
     const interval = window.setInterval(() => {
       if (carouselRef.current) {
@@ -873,7 +760,31 @@ export default function Marketplace() {
     };
   }, []);
 
+  // Lógica de filtrado con los datos reales que llegan
+  const published = courses.filter((c) => c.status === 'published');
+  const topRated = [...published]
+    .filter((c) => (c.average_rating || c.rating_average || 0) >= 4.5)
+    .sort((a, b) => (b.average_rating || b.rating_average || 0) - (a.average_rating || a.rating_average || 0))
+    .slice(0, 8);
+  const bestSelling = [...published]
+    .sort((a, b) => (b.reviews_count || b.rating_count || 0) - (a.reviews_count || a.rating_count || 0))
+    .slice(0, 8);
+  const certified = published.filter((c) => c.ally === 'intercert').slice(0, 10);
+  const trending = [...published].sort(() => 0.5 - Math.random()).slice(0, 10);
+
   const filtered = published.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // PANTALLA DE CARGA MIENTRAS FIREBASE RESPONDE
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FCFAF6]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-[#FFC847] rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-bold tracking-widest text-sm uppercase">Cargando catálogo...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: '12px' }}>
@@ -1018,198 +929,167 @@ export default function Marketplace() {
         </div>
       </div>
 
-      <div
-        style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: isMobile ? '24px 16px 32px' : '28px 24px 40px',
-          textAlign: 'center',
-        }}
-      >
-        <Link
-          to="/register"
-          style={{
-            background: '#FFC847',
-            color: '#000000',
-            border: 'none',
-            padding: '10px 40px',
-            borderRadius: '8px',
-            fontSize: '18px',
-            fontWeight: '800',
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(255, 200, 71, 0.3)',
-            transition: 'transform 0.2s ease',
-            display: 'inline-block',
-            textDecoration: 'none',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          ¡Regístrate ya!
-        </Link>
-      </div>
+      {/* ESTADO VACÍO (Si la base de datos no tiene cursos) */}
+      {!loading && courses.length === 0 ? (
+        <div className="max-w-[1400px] mx-auto text-center py-20 px-4">
+          <i className="ri-inbox-archive-line text-6xl text-gray-300 mb-4 block"></i>
+          <h2 className="text-2xl font-black text-black mb-2">Aún no hay productos disponibles</h2>
+          <p className="text-gray-500 font-medium">Estamos preparando el mejor contenido para ti. ¡Vuelve pronto!</p>
+        </div>
+      ) : (
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 clamp(20px, 5vw, 40px) 40px' }}>
+          <div style={{ minHeight: '400px' }}>
+            <>
+                {published.length > 0 && (
+                  <CourseCarouselSection
+                    title="Nuevos lanzamientos"
+                    courses={published.slice(0, 10)}
+                    renderCard={(course) => (
+                      <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
+                    )}
+                  />
+                )}
+                {certified.length > 0 && (
+                  <CourseCarouselSection
+                    title="Certificados por Intercert"
+                    courses={certified}
+                    renderCard={(course) => (
+                      <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
+                    )}
+                  />
+                )}
+                {bestSelling.length > 0 && (
+                  <CourseCarouselSection
+                    title="Más vendidos"
+                    courses={bestSelling}
+                    renderCard={(course) => (
+                      <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
+                    )}
+                  />
+                )}
+                {topRated.length > 0 && (
+                  <CourseCarouselSection
+                    title="Mejor valorados"
+                    courses={topRated}
+                    renderCard={(course) => (
+                      <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
+                    )}
+                  />
+                )}
+                {trending.length > 0 && (
+                  <CourseCarouselSection
+                    title="En tendencia"
+                    courses={trending}
+                    renderCard={(course) => (
+                      <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
+                    )}
+                  />
+                )}
+            </>
 
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 clamp(20px, 5vw, 40px) 40px' }}>
-        <div style={{ minHeight: '400px' }}>
-          <>
-              {published.length > 0 && (
-                <CourseCarouselSection
-                  title="Nuevos lanzamientos"
-                  courses={published.slice(0, 10)}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-              {certified.length > 0 && (
-                <CourseCarouselSection
-                  title="Certificados por Intercert"
-                  courses={certified}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-              {bestSelling.length > 0 && (
-                <CourseCarouselSection
-                  title="Más vendidos"
-                  courses={bestSelling}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-              {topRated.length > 0 && (
-                <CourseCarouselSection
-                  title="Mejor valorados"
-                  courses={topRated}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-              {trending.length > 0 && (
-                <CourseCarouselSection
-                  title="En tendencia"
-                  courses={trending}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-              {published.length > 0 && (
-                <CourseCarouselSection
-                  title="Recomendados para ti"
-                  courses={[...published].reverse().slice(0, 10)}
-                  renderCard={(course) => (
-                    <CourseCard key={course.id} course={course} onOpenPreview={setPreviewCourse} />
-                  )}
-                />
-              )}
-          </>
-
-          <div style={{ marginBottom: '60px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#000000', marginBottom: '15px' }}>
-              {searchQuery ? `Resultados para "${searchQuery}"` : 'Todos los productos'}
-            </h2>
-            <div
-              className="all-products-container"
-              style={{
-                display: 'flex',
-                gap: isMobile ? '20px' : '30px',
-                overflowX: 'auto',
-                paddingBottom: '20px',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              {filtered.slice(0, 3).map((course) => (
+            {/* SECCIÓN INFERIOR DE TODOS LOS PRODUCTOS */}
+            {published.length > 0 && (
+              <div style={{ marginBottom: '60px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#000000', marginBottom: '15px' }}>
+                  {searchQuery ? `Resultados para "${searchQuery}"` : 'Todos los productos'}
+                </h2>
                 <div
-                  key={course.id}
-                  style={{ minWidth: isMobile ? '260px' : '300px', flex: '0 0 auto', scrollSnapAlign: 'start' }}
-                >
-                  <CourseCard course={course} onOpenPreview={setPreviewCourse} />
-                </div>
-              ))}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '20px',
-                  border: '1.2px dashed #000000',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  width: '100%',
-                  minWidth: isMobile ? '260px' : '300px',
-                  maxWidth: '300px',
-                  flex: '0 0 auto',
-                  scrollSnapAlign: 'start',
-                  height: 'auto',
-                  minHeight: '350px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                  marginLeft: isMobile ? '0' : 'auto',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#F7FAFC';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#FFFFFF';
-                }}
-              >
-                <div
+                  className="all-products-container"
                   style={{
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #333 0%, #000 100%)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '15px',
-                    boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                    gap: isMobile ? '20px' : '30px',
+                    overflowX: 'auto',
+                    paddingBottom: '20px',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    scrollSnapType: isMobile ? 'x mandatory' : 'none',
+                    WebkitOverflowScrolling: 'touch',
                   }}
                 >
-                  <i className="ri-shopping-cart-2-fill" style={{ fontSize: '24px', color: '#FFC847' }} />
+                  {filtered.slice(0, 3).map((course) => (
+                    <div
+                      key={course.id}
+                      style={{ minWidth: isMobile ? '260px' : '300px', flex: '0 0 auto', scrollSnapAlign: 'start' }}
+                    >
+                      <CourseCard course={course} onOpenPreview={setPreviewCourse} />
+                    </div>
+                  ))}
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      borderRadius: '20px',
+                      border: '1.2px dashed #000000',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      width: '100%',
+                      minWidth: isMobile ? '260px' : '300px',
+                      maxWidth: '300px',
+                      flex: '0 0 auto',
+                      scrollSnapAlign: 'start',
+                      height: 'auto',
+                      minHeight: '350px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                      marginLeft: isMobile ? '0' : 'auto',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#F7FAFC';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#FFFFFF';
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #333 0%, #000 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '15px',
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      <i className="ri-shopping-cart-2-fill" style={{ fontSize: '24px', color: '#FFC847' }} />
+                    </div>
+                    <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#000000', marginBottom: '8px', maxWidth: '280px', lineHeight: '1.2' }}>
+                      Conoce todos nuestros productos
+                    </h3>
+                    <p style={{ fontSize: '13px', color: '#718096', marginBottom: '15px' }}>Explora nuestro catálogo</p>
+                    <span
+                      style={{
+                        background: '#FFC847',
+                        color: '#000000',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      Ir al LernyMarket <i className="ri-arrow-right-line" />
+                    </span>
+                  </div>
                 </div>
-                <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#000000', marginBottom: '8px', maxWidth: '280px', lineHeight: '1.2' }}>
-                  Conoce todos nuestros productos
-                </h3>
-                <p style={{ fontSize: '13px', color: '#718096', marginBottom: '15px' }}>Explora nuestro catálogo</p>
-                <span
-                  style={{
-                    background: '#FFC847',
-                    color: '#000000',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  Ir al LernyMarket <i className="ri-arrow-right-line" />
-                </span>
+                <style>{`
+                  .all-products-container::-webkit-scrollbar { display: none; }
+                `}</style>
               </div>
-            </div>
-            <style>{`
-              .all-products-container::-webkit-scrollbar { display: none; }
-            `}</style>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
+      {/* MODAL DE VISTA PREVIA (Sin cambios) */}
       {previewCourse && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"

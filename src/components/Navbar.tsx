@@ -230,8 +230,9 @@ export default function Navbar() {
                       <p className="px-4 pb-2 text-sm text-gray-300">
                         Hola, <span className="font-bold text-white">{displayName}</span>
                       </p>
+                      {/* Aquí está el cambio a to="/profile" */}
                       <Link
-                        to="/"
+                        to="/profile"
                         className="block px-4 py-2 text-sm text-white hover:bg-white/5 no-underline"
                         onClick={() => setProfileOpen(false)}
                       >
