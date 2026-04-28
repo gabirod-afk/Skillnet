@@ -6,6 +6,7 @@ import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 
 // Páginas Públicas
 import Home from './pages/home/Home';
@@ -14,6 +15,10 @@ import Register from './pages/auth/Register';
 
 // Páginas Privadas
 import Marketplace from './pages/products/Marketplace';
+import CourseDetailsPage from './pages/products/CourseDetailsPage';
+import CategoryCatalogPage from './pages/products/CategoryCatalogPage';
+import CartPage from './pages/products/CartPage';
+import CheckoutPage from './pages/payments/CheckoutPage';
 import ProfileSettings from './pages/affiliate/ProfileSettings';
 import CreateProductFlow from './pages/producer/CreateProductFlow';
 import MyProducts from './pages/producer/MyProducts'; 
@@ -21,9 +26,10 @@ import MyProducts from './pages/producer/MyProducts';
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <MainLayout>
-          <Routes>
+      <CartProvider>
+        <BrowserRouter>
+          <MainLayout>
+            <Routes>
             
             {/* ==============================
                 RUTAS PÚBLICAS
@@ -31,6 +37,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/catalog/:categoryId" element={<CategoryCatalogPage />} />
 
             {/* ==============================
                 RUTAS PRIVADAS GENERALES (Para todos los logueados)
@@ -38,6 +45,18 @@ const App: React.FC = () => {
             <Route 
               path="/marketplace" 
               element={<ProtectedRoute><Marketplace /></ProtectedRoute>} 
+            />
+            <Route
+              path="/marketplace/course/:courseId"
+              element={<ProtectedRoute><CourseDetailsPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/checkout"
+              element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/cart"
+              element={<ProtectedRoute><CartPage /></ProtectedRoute>}
             />
             
             <Route 
@@ -68,9 +87,10 @@ const App: React.FC = () => {
 
             <Route path="*" element={<Navigate to="/" replace />} />
 
-          </Routes>
-        </MainLayout>
-      </BrowserRouter>
+            </Routes>
+          </MainLayout>
+        </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 };

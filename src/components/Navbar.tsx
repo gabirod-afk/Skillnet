@@ -19,6 +19,8 @@ import {
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { CATALOG_CATEGORIES } from '../data/catalogCategories';
 
 interface Category {
   id: string;
@@ -28,50 +30,29 @@ interface Category {
   image: string;
 }
 
-const CATEGORIES_DATA: Category[] = [
-  {
-    id: 'finanzas',
-    title: 'Finanzas y Negocios',
-    icon: Briefcase,
-    subcategories: ['Contabilidad', 'Finanzas', 'Inversiones', 'Emprendimiento', 'Administración'],
-    image: '/src/assets/cat-finanzas.jfif',
-  },
-  {
-    id: 'gestion',
-    title: 'Gestión y Operaciones',
-    icon: Settings,
-    subcategories: ['Gestión de proyectos', 'Productividad', 'Gestión de operaciones', 'Gestión de procesos', 'Gestión de calidad'],
-    image: '/src/assets/cat-gestion.jpg',
-  },
-  {
-    id: 'marketing',
-    title: 'Marketing y Ventas',
-    icon: LineChart,
-    subcategories: ['Marketing', 'Marketing digital', 'Trade marketing', 'Branding', 'Ventas', 'E-commerce', 'Gestión comercial', 'Experiencia al cliente', 'Redes sociales'],
-    image: '/src/assets/cat-marketing.jfif',
-  },
-  {
-    id: 'tecnologia',
-    title: 'Tecnología y Data',
-    icon: Code,
-    subcategories: ['Programación', 'Desarrollo de software', 'Desarrollo web', 'Data analytics', 'Machine learning', 'Informática', 'Inteligencia artificial', 'Automatización', 'Transformación digital'],
-    image: '/src/assets/cat-tecnologia.jpg',
-  },
-  {
-    id: 'desarrollo',
-    title: 'Desarrollo Profesional',
-    icon: User,
-    subcategories: ['Liderazgo', 'Mindset', 'Habilidades blandas', 'People management'],
-    image: '/src/assets/cat-desarrollo.jfif',
-  },
-  {
-    id: 'creatividad',
-    title: 'Creatividad y Diseño',
-    icon: Palette,
-    subcategories: ['Diseño gráfico', 'Creatividad aplicada', 'UX/UI', 'Producto digital', 'Fotografía y video'],
-    image: '/src/assets/cat-creatividad.jfif',
-  },
-];
+const ICON_BY_CATEGORY: Record<string, LucideIcon> = {
+  finanzas: Briefcase,
+  gestion: Settings,
+  marketing: LineChart,
+  tecnologia: Code,
+  desarrollo: User,
+  creatividad: Palette,
+};
+
+const IMAGE_BY_CATEGORY: Record<string, string> = {
+  finanzas: '/src/assets/cat-finanzas.jfif',
+  gestion: '/src/assets/cat-gestion.jpg',
+  marketing: '/src/assets/cat-marketing.jfif',
+  tecnologia: '/src/assets/cat-tecnologia.jpg',
+  desarrollo: '/src/assets/cat-desarrollo.jfif',
+  creatividad: '/src/assets/cat-creatividad.jfif',
+};
+
+const CATEGORIES_DATA: Category[] = CATALOG_CATEGORIES.map((category) => ({
+  ...category,
+  icon: ICON_BY_CATEGORY[category.id] || Briefcase,
+  image: IMAGE_BY_CATEGORY[category.id] || '/src/assets/cat-finanzas.jfif',
+}));
 
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=120&auto=format&fit=crop';
@@ -82,7 +63,10 @@ export default function Navbar() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<Category>(CATEGORIES_DATA[0]);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
+  const cartWrapRef = useRef<HTMLDivElement>(null);
+  const { items, removeFromCart, getTotalItems, getTotalPrice } = useCart();
 
   const displayName =
     user?.displayName?.trim() ||
@@ -100,6 +84,17 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [profileOpen]);
 
+  useEffect(() => {
+    if (!cartOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (cartWrapRef.current && !cartWrapRef.current.contains(e.target as Node)) {
+        setCartOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [cartOpen]);
+
   const handleSignOut = async () => {
     setProfileOpen(false);
     await signOut(auth);
@@ -107,31 +102,43 @@ export default function Navbar() {
   };
 
   const iconBtnClass =
-    'hidden sm:flex w-10 h-10 shrink-0 items-center justify-center rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors';
+    'hidden sm:flex w-[42px] h-[36px] shrink-0 items-center justify-center rounded-[10px] border border-white/60 text-white hover:bg-white/10 transition-colors';
 
   return (
-    <nav className="bg-black border-b border-gray-800 sticky top-0 z-50">
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 gap-4">
-          <div className="flex items-center gap-8 min-w-0">
-            <Link to="/" className="flex items-center shrink-0 no-underline">
-              <span className="text-2xl font-bold text-white tracking-tight">
-                Lerny<span className="text-[#FFD147]">mart</span>
-              </span>
-            </Link>
+    <nav className="bg-black sticky top-0 z-50 border-b border-[#222222]">
+      <div className="w-full px-6">
+        <div className="flex justify-between items-center h-16 gap-5">
+          <div className="flex items-center gap-5 min-w-0 flex-1">
+            {user ? (
+              <Link to="/marketplace" className="flex items-center shrink-0 no-underline gap-2">
+                <span className="text-[30px] leading-none font-bold text-white tracking-tight">
+                  Lerny<span className="text-[#FFD147]">mart</span>
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="flex items-center shrink-0 no-underline gap-2 bg-transparent border-none p-0 cursor-default"
+                aria-label="Lernymart"
+              >
+                <span className="text-[30px] leading-none font-bold text-white tracking-tight">
+                  Lerny<span className="text-[#FFD147]">mart</span>
+                </span>
+              </button>
+            )}
 
-            <div className="relative hidden md:block" onMouseLeave={() => setIsCategoryOpen(false)}>
+            <div className="relative hidden md:flex items-center h-16 shrink-0" onMouseLeave={() => setIsCategoryOpen(false)}>
               <button
                 type="button"
                 onMouseEnter={() => setIsCategoryOpen(true)}
-                className="flex items-center gap-2 text-white font-medium hover:text-[#FFD147] transition-colors py-8"
+                className="flex items-center gap-2 text-white text-[15px] font-medium hover:text-[#FFD147] transition-colors h-full"
               >
                 Categorías
-                <ChevronDown className={`w-4 h-4 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-[18px] h-[18px] transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isCategoryOpen && (
-                <div className="absolute top-[72px] left-0 w-[800px] bg-[#111111] border border-gray-800 rounded-xl shadow-2xl flex z-50 overflow-hidden">
+                <div className="absolute top-16 left-0 w-[800px] bg-[#111111] border border-gray-800 rounded-xl shadow-2xl flex z-50 overflow-hidden">
                   <div className="w-[40%] flex flex-col p-3 border-r border-gray-800 gap-1">
                     {CATEGORIES_DATA.map((cat) => {
                       const Icon = cat.icon;
@@ -141,7 +148,10 @@ export default function Navbar() {
                           key={cat.id}
                           type="button"
                           onMouseEnter={() => setActiveCategory(cat)}
-                          onClick={() => setIsCategoryOpen(false)}
+                          onClick={() => {
+                            setIsCategoryOpen(false);
+                            navigate(`/catalog/${cat.id}`);
+                          }}
                           className={`w-full flex justify-between items-center px-4 py-3 rounded-lg text-sm font-semibold transition-colors duration-200 ${
                             isActive ? 'bg-[#FFD147] text-black' : 'text-gray-300 hover:bg-[#222222] hover:text-white'
                           }`}
@@ -161,9 +171,17 @@ export default function Navbar() {
                       <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">{activeCategory.title}</h3>
                       <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-6">
                         {activeCategory.subcategories.map((sub, idx) => (
-                          <a key={idx} href="#" className="text-sm text-gray-300 hover:text-[#FFD147] transition-colors">
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setIsCategoryOpen(false);
+                              navigate(`/catalog/${activeCategory.id}?sub=${encodeURIComponent(sub)}`);
+                            }}
+                            className="text-sm text-gray-300 hover:text-[#FFD147] transition-colors bg-transparent border-none p-0 text-left cursor-pointer"
+                          >
                             {sub}
-                          </a>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -182,48 +200,112 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="hidden lg:flex flex-1 max-w-xl mx-8 min-w-0">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            <div className="hidden lg:block relative w-full max-w-[320px] z-[1001]">
+              <div className="relative rounded-lg border-2 border-transparent bg-[#f3f4f6] bg-clip-padding">
+                <div className="relative flex items-center h-9">
+                  <div className="absolute left-4 text-black flex items-center pointer-events-none">
+                    <Search className="w-[14px] h-[14px]" />
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full h-full pl-12 pr-4 rounded-[24px] border-none outline-none text-[15px] bg-[#f3f4f6] text-[#111111] font-medium"
+                    placeholder="¿Qué quieres aprender hoy?"
+                  />
+                </div>
               </div>
-              <input
-                type="text"
-                className="block w-full rounded-full pl-10 pr-3 py-2.5 border border-transparent bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFD147] sm:text-sm font-medium"
-                placeholder="¿Qué quieres aprender hoy?"
-              />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-5 shrink-0 ml-auto">
             {user ? (
               <>
-                <button type="button" className={iconBtnClass} aria-label="Notificaciones">
-                  <Bell className="w-5 h-5" strokeWidth={1.75} />
-                </button>
-                <button type="button" className={iconBtnClass} aria-label="Carrito">
-                  <ShoppingCart className="w-5 h-5" strokeWidth={1.75} />
-                </button>
-                <button type="button" className={iconBtnClass} aria-label="Lista de deseos">
-                  <Heart className="w-5 h-5" strokeWidth={1.75} />
-                </button>
-                <div className="relative pl-1" ref={profileWrapRef}>
+                <div className="flex items-center gap-[15px]">
+                  <button type="button" className={iconBtnClass} aria-label="Notificaciones">
+                    <Bell className="w-5 h-5" strokeWidth={1.9} />
+                  </button>
+                  <div className="relative" ref={cartWrapRef}>
+                    <button type="button" onClick={() => setCartOpen((o) => !o)} className={iconBtnClass} aria-label="Carrito">
+                      <ShoppingCart className="w-5 h-5" strokeWidth={1.9} />
+                      {getTotalItems() > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-[#FFC847] text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                          {getTotalItems()}
+                        </span>
+                      )}
+                    </button>
+                    {cartOpen && (
+                      <div className="absolute right-0 top-12 w-80 md:w-96 bg-[#000000] border border-[#222222] rounded-xl shadow-2xl z-50 p-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex justify-between items-center mb-3 pb-3 border-b border-[#222222]">
+                          <h3 className="font-bold text-sm text-white">Resumen de carrito ({items.length})</h3>
+                          <button type="button" onClick={() => setCartOpen(false)}>
+                            <i className="ri-close-line w-4 h-4 text-gray-400 hover:text-white" />
+                          </button>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto space-y-3 mb-4 pr-2">
+                          {items.length === 0 ? (
+                            <p className="text-sm text-gray-400">Tu carrito está vacío.</p>
+                          ) : (
+                            items.map((item) => (
+                              <div key={item.id} className="flex gap-3 bg-[#0A0A0A] p-2 rounded-lg relative group border border-transparent hover:border-[#FFC847]/30 transition-all">
+                                <img
+                                  className="w-16 h-12 object-cover rounded bg-gray-800 shrink-0"
+                                  alt={item.title}
+                                  src={item.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000'}
+                                />
+                                <div className="flex-1 overflow-hidden">
+                                  <p className="text-xs font-bold text-white truncate leading-tight">{item.title}</p>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{item.instructor || 'LernyMart'}</p>
+                                  <p className="text-xs text-[#ffc847] font-bold mt-1">US$ {(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeFromCart(item.id)}
+                                  className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-600"
+                                >
+                                  <i className="ri-close-line w-3 h-3 text-white" />
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="pt-2 border-t border-[#222222]">
+                          <div className="flex justify-between items-center text-sm font-bold mb-4 text-white">
+                            <span>Total:</span>
+                            <span className="text-[#ffc847] text-lg">US$ {getTotalPrice().toFixed(2)}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCartOpen(false);
+                              navigate('/cart');
+                            }}
+                            className="w-full bg-[#ffc847] hover:bg-[#f0bb32] text-black font-bold h-10 rounded-md"
+                          >
+                            Ir a detalle de compra
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <button type="button" className={iconBtnClass} aria-label="Lista de deseos">
+                    <Heart className="w-5 h-5" strokeWidth={1.9} />
+                  </button>
+                </div>
+                <div className="relative" ref={profileWrapRef}>
                   <button
                     type="button"
                     onClick={() => setProfileOpen((o) => !o)}
-                    className="flex items-center gap-1.5 rounded-lg p-1 pr-2 hover:bg-white/10 transition-colors"
+                    className="flex items-center gap-2 cursor-pointer px-[10px] py-[5px] rounded-lg hover:bg-white/10 transition-colors"
                     aria-expanded={profileOpen}
                     aria-haspopup="true"
                   >
                     <img
                       src={user.photoURL || DEFAULT_AVATAR}
                       alt=""
-                      className="w-9 h-9 rounded-full object-cover border border-gray-600"
+                      className="w-[34px] h-[34px] rounded-full object-cover border-[1.5px] border-[#FFC847] bg-[#333333]"
                       referrerPolicy="no-referrer"
                     />
-                    <ChevronDown className={`w-4 h-4 text-white transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-[18px] h-[18px] text-white transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {profileOpen && (
                     <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-[#1a1a1a] border border-gray-800 shadow-2xl py-3 z-[60]">
@@ -261,13 +343,13 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="hidden sm:block px-5 py-2 border border-white text-white rounded-lg text-sm font-bold hover:bg-white hover:text-black transition-all no-underline"
+                  className="hidden sm:block px-4 py-2 border border-white text-white rounded-md text-sm font-semibold hover:bg-white hover:text-black transition-all no-underline"
                 >
                   Iniciar Sesión
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2 bg-[#FFD147] text-black rounded-lg text-sm font-bold hover:bg-yellow-400 transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] no-underline"
+                  className="px-4 py-2 bg-[#FFD147] text-black rounded-md text-sm font-bold hover:bg-yellow-400 transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] no-underline"
                 >
                   Regístrate
                 </Link>

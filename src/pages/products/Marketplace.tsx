@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import { CATALOG_CATEGORIES } from '../../data/catalogCategories';
+import { useCart } from '../../contexts/CartContext';
 
 
 function formatMoney(value: string | number, _currency?: string) {
@@ -57,74 +59,15 @@ const OFFER_ITEMS = [
 ];
 
 /** Categorías estáticas (misma idea que el navbar principal; sin API). */
-const MARKETPLACE_NAV_CATEGORIES = [
-  {
-    id: 'finanzas',
-    title: 'Finanzas y Negocios',
-    subcategories: ['Contabilidad', 'Finanzas', 'Inversiones', 'Emprendimiento', 'Administración'],
-  },
-  {
-    id: 'gestion',
-    title: 'Gestión y Operaciones',
-    subcategories: [
-      'Gestión de proyectos',
-      'Productividad',
-      'Gestión de operaciones',
-      'Gestión de procesos',
-      'Gestión de calidad',
-    ],
-  },
-  {
-    id: 'marketing',
-    title: 'Marketing y Ventas',
-    subcategories: [
-      'Marketing',
-      'Marketing digital',
-      'Trade marketing',
-      'Branding',
-      'Ventas',
-      'E-commerce',
-      'Gestión comercial',
-      'Experiencia al cliente',
-      'Redes sociales',
-    ],
-  },
-  {
-    id: 'tecnologia',
-    title: 'Tecnología y Data',
-    subcategories: [
-      'Programación',
-      'Desarrollo de software',
-      'Desarrollo web',
-      'Data analytics',
-      'Machine learning',
-      'Informática',
-      'Inteligencia artificial',
-      'Automatización',
-      'Transformación digital',
-    ],
-  },
-  {
-    id: 'desarrollo',
-    title: 'Desarrollo Profesional',
-    subcategories: ['Liderazgo', 'Mindset', 'Habilidades blandas', 'People management'],
-  },
-  {
-    id: 'creatividad',
-    title: 'Creatividad y Diseño',
-    subcategories: ['Diseño gráfico', 'Creatividad aplicada', 'UX/UI', 'Producto digital', 'Fotografía y video'],
-  },
-];
+const MARKETPLACE_NAV_CATEGORIES = CATALOG_CATEGORIES;
 
 function MarketplaceCategoryNav() {
+  const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const active = hoveredId ? MARKETPLACE_NAV_CATEGORIES.find((c) => c.id === hoveredId) : null;
 
   return (
-    <div
-      style={{ position: 'relative', maxWidth: '1400px', margin: '0 auto' }}
-      onMouseLeave={() => setHoveredId(null)}
-    >
+    <div style={{ position: 'relative', width: '100%' }} onMouseLeave={() => setHoveredId(null)}>
       <div
         className="marketplace-hide-scrollbar"
         style={{
@@ -153,6 +96,7 @@ function MarketplaceCategoryNav() {
                 <button
                   type="button"
                   onMouseEnter={() => setHoveredId(cat.id)}
+                  onClick={() => navigate(`/catalog/${cat.id}`)}
                   style={{
                     whiteSpace: 'nowrap',
                     background: 'transparent',
@@ -192,9 +136,15 @@ function MarketplaceCategoryNav() {
           }}
         >
           {active.subcategories.map((sub) => (
-            <span key={sub} className="marketplace-subcat-item" style={{ fontSize: '13px', color: '#333', padding: '8px 10px', borderRadius: '4px', cursor: 'default' }}>
+            <button
+              type="button"
+              key={sub}
+              onClick={() => navigate(`/catalog/${active.id}?sub=${encodeURIComponent(sub)}`)}
+              className="marketplace-subcat-item"
+              style={{ fontSize: '13px', color: '#333', padding: '8px 10px', borderRadius: '4px', cursor: 'pointer', border: 'none', background: 'transparent' }}
+            >
               {sub}
-            </span>
+            </button>
           ))}
         </div>
       )}
@@ -211,11 +161,13 @@ function IconButton({
   icon,
   activeIcon,
   activeColor,
+  isActive = false,
   onClick,
 }: {
   icon: string;
   activeIcon: string;
   activeColor?: string;
+  isActive?: boolean;
   onClick: (e: React.MouseEvent) => void;
 }) {
   const [isBtnHovered, setIsBtnHovered] = useState(false);
@@ -232,8 +184,8 @@ function IconButton({
         height: '34px',
         borderRadius: '8px',
         border: '1.2px solid #FFC847',
-        background: isBtnHovered ? '#000000' : 'transparent',
-        color: isBtnHovered ? activeColor || '#FFFFFF' : '#000000',
+        background: isBtnHovered || isActive ? '#000000' : 'transparent',
+        color: isBtnHovered || isActive ? activeColor || '#FFFFFF' : '#000000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -241,7 +193,7 @@ function IconButton({
         transition: 'all 0.2s ease',
       }}
     >
-      <i className={isBtnHovered ? activeIcon : baseIcon} style={{ fontSize: '16px', color: 'inherit' }} />
+      <i className={isBtnHovered || isActive ? activeIcon : baseIcon} style={{ fontSize: '16px', color: 'inherit' }} />
     </button>
   );
 }
@@ -253,6 +205,8 @@ type CourseCardProps = {
 };
 
 function CourseCard({ course, isAffiliate = false, onOpenPreview }: CourseCardProps) {
+  const navigate = useNavigate();
+  const { toggleCartItem, isInCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const [previewVideo, setPreviewVideo] = useState<{
     url: string;
@@ -332,7 +286,10 @@ function CourseCard({ course, isAffiliate = false, onOpenPreview }: CourseCardPr
               <button
                 type="button"
                 className="w-full bg-black text-white py-3 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-black/90 transition-all shadow-md active:scale-[0.98]"
-                onClick={() => setPreviewVideo(null)}
+                onClick={() => {
+                  navigate(`/marketplace/course/${course.id}`);
+                  setPreviewVideo(null);
+                }}
               >
                 Ver más detalle
               </button>
@@ -527,6 +484,9 @@ function CourseCard({ course, isAffiliate = false, onOpenPreview }: CourseCardPr
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (!isAffiliate) {
+                  navigate('/checkout', { state: { directCourse: course } });
+                }
               }}
               style={{
                 flex: 1,
@@ -562,7 +522,21 @@ function CourseCard({ course, isAffiliate = false, onOpenPreview }: CourseCardPr
                 <IconButton
                   icon="ri-shopping-cart-line"
                   activeIcon="ri-shopping-cart-fill"
-                  onClick={(e) => e.stopPropagation()}
+                  isActive={isInCart(course.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCartItem({
+                      id: course.id,
+                      title: course.title,
+                      price: Number(course.price || 0),
+                      image:
+                        course.image_file_url ||
+                        course.image_url ||
+                        course.thumbnail_url ||
+                        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop',
+                      instructor: course.author?.name || course.professor?.username || 'LernyMart',
+                    });
+                  }}
                 />
               </>
             )}
@@ -709,6 +683,7 @@ function CourseCarouselSection({
 }
 
 export default function Marketplace() {
+  const navigate = useNavigate();
   // ESTADOS PARA DATOS REALES DE FIREBASE
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1164,7 +1139,10 @@ export default function Marketplace() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setPreviewCourse(null)}
+                  onClick={() => {
+                    navigate(`/marketplace/course/${previewCourse.id}`);
+                    setPreviewCourse(null);
+                  }}
                   className="w-full mt-2 bg-black text-white py-3.5 rounded-xl font-black text-[11px] uppercase tracking-widest hover:text-[#ffc847] transition-all shadow-md active:scale-[0.98]"
                 >
                   VER MÁS DETALLE
