@@ -23,6 +23,13 @@ import ProfileSettings from './pages/affiliate/ProfileSettings';
 import CreateProductFlow from './pages/producer/CreateProductFlow';
 import MyProducts from './pages/producer/MyProducts'; 
 
+// Páginas de Administrador (NUEVAS IMPORTACIONES)
+import DashboardAdmin from './pages/admin/DashboardAdmin';
+import UserManagement from './pages/admin/UserManagement';
+import CourseManagement from './pages/admin/CourseManagement';
+import ProducerServices from './pages/admin/ProducerServices';
+import TutorVerification from './pages/admin/TutorVerification';
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -70,7 +77,7 @@ const App: React.FC = () => {
             <Route 
               path="/crear-producto" 
               element={
-                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor']}>
+                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor', 'admin']}>
                   <CreateProductFlow />
                 </RoleProtectedRoute>
               } 
@@ -79,11 +86,41 @@ const App: React.FC = () => {
             <Route
               path="/mis-productos"
               element={
-                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor']}>
+                <RoleProtectedRoute allowedRoles={['afiliado', 'infoproductor', 'admin']}>
                   <MyProducts />
                 </RoleProtectedRoute>
               }
             />
+
+            {/* ==============================
+                RUTAS DE ADMINISTRADOR
+            ============================== */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <DashboardAdmin />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/usuarios"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <UserManagement />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/cursos"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <CourseManagement />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route path="/admin/servicios" element={<RoleProtectedRoute allowedRoles={['admin']}><ProducerServices /></RoleProtectedRoute>} />
+            <Route path="/admin/verificacion" element={<RoleProtectedRoute allowedRoles={['admin']}><TutorVerification /></RoleProtectedRoute>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
 
